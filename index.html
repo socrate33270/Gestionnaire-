@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestionnaire de Tâches Moderne</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #f5f5f5;
+            --text-color: #333;
+            --completed-color: #5cb85c;
+            --ongoing-color: #f0ad4e;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .task-form {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .task-form input, .task-form select, .task-form button {
+            padding: 10px;
+            margin-right: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .task-form input {
+            flex-grow: 1;
+        }
+        .task-form button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .task-form button:hover {
+            background-color: #357ae8;
+        }
+        .filter-buttons {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .filter-buttons button {
+            background-color: white;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 10px 20px;
+            margin: 0 5px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .filter-buttons button:hover, .filter-buttons button.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .task-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .task-item {
+            background-color: white;
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+        .task-item:hover {
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .task-item .task-name {
+            flex-grow: 1;
+        }
+        .task-item .task-status {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8em;
+        }
+        .task-item .task-status.completed {
+            background-color: var(--completed-color);
+            color: white;
+        }
+        .task-item .task-status.ongoing {
+            background-color: var(--ongoing-color);
+            color: white;
+        }
+        .task-item button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2em;
+            color: #777;
+            transition: color 0.3s;
+        }
+        .task-item button:hover {
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Gestionnaire de Tâches de <span id="userName"></span></h1>
+        
+        <form class="task-form" id="addTaskForm">
+            <input type="text" id="newTaskName" placeholder="Nouvelle tâche" required>
+            <select id="newTaskStatus">
+                <option value="en cours">En cours</option>
+                <option value="terminée">Terminée</option>
+            </select>
+            <button type="submit">Ajouter</button>
+        </form>
+
+        <div class="filter-buttons">
+            <button onclick="filtrerTaches('toutes')" class="active">Toutes</button>
+            <button onclick="filtrerTaches('en cours')">En cours</button>
+            <button onclick="filtrerTaches('terminée')">Terminées</button>
+        </div>
+
+        <ul id="taskList" class="task-list"></ul>
+    </div>
+
+    <script>
+        const userName = "Aurélien";
+        let mesTaches = [
+            { tacheName: "sport", statu: "terminée" },
+            { tacheName: "code", statu: "terminée" },
+            { tacheName: "travail", statu: "en cours" },
+            { tacheName: "console", statu: "en cours" }
+        ];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('userName').textContent = userName;
+
+            function afficherTaches(taches = mesTaches) {
+                const liste = document.getElementById('taskList');
+                liste.innerHTML = '';
+                taches.forEach(tache => {
+                    const li = document.createElement('li');
+                    li.className = 'task-item';
+                    li.innerHTML = `
+                        <span class="task-name">${tache.tacheName}</span>
+                        <span class="task-status ${tache.statu === 'terminée' ? 'completed' : 'ongoing'}">${tache.statu}</span>
+                        <button onclick="toggleTaskStatus('${tache.tacheName}')"><i class="fas fa-sync-alt"></i></button>
+                    `;
+                    liste.appendChild(li);
+                });
+            }
+
+            function ajouterTaches(nouvelleTache, nouveauStatu) {
+                mesTaches.push({ tacheName: nouvelleTache, statu: nouveauStatu });
+                console.log("Tâche ajoutée:", { tacheName: nouvelleTache, statu: nouveauStatu });
+                afficherTaches();
+            }
+
+            window.filtrerTaches = function(statut) {
+                document.querySelectorAll('.filter-buttons button').forEach(btn => btn.classList.remove('active'));
+                event.target.classList.add('active');
+                if (statut === 'toutes') {
+                    afficherTaches();
+                } else {
+                    const tachesFiltrees = mesTaches.filter(tache => tache.statu === statut);
+                    afficherTaches(tachesFiltrees);
+                }
+            };
+
+            window.toggleTaskStatus = function(tacheName) {
+                const tache = mesTaches.find(t => t.tacheName === tacheName);
+                if (tache) {
+                    tache.statu = tache.statu === 'en cours' ? 'terminée' : 'en cours';
+                    afficherTaches();
+                }
+            };
+
+            document.getElementById('addTaskForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const nouvelleTache = document.getElementById('newTaskName').value;
+                const nouveauStatu = document.getElementById('newTaskStatus').value;
+                if (nouvelleTache.trim() !== '') {
+                    ajouterTaches(nouvelleTache, nouveauStatu);
+                    document.getElementById('newTaskName').value = '';
+                    document.getElementById('newTaskStatus').value = 'en cours';
+                }
+            });
+
+            // Afficher les tâches initiales
+            afficherTaches();
+        });
+    </script>
+</body>
+</html>
